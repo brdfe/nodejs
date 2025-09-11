@@ -11,13 +11,18 @@ app.use(cors())
 // Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+const events = [];
+
 // Use the router for handling routes
-app.use('/', indexRouter);
+app.use('/', (req, res) => {
+  res.send(events.map((event, index) => `${index + 1}. ${event}`).join('\n'));
+});
 
 app.get('/events', (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   res.flushHeaders();
@@ -28,13 +33,13 @@ app.get('/events', (req, res) => {
 
   // 👇 Detect client disconnect
   req.on("close", () => {
-    console.log("Client disconnected");
+    events.push("Client disconnected");
     clearInterval(interval);
     res.end();
   });
 
   res.on("close", () => {
-    console.log('couldnt contact client')
+    events.push('couldnt contact client')
   })
 });
 
@@ -44,5 +49,5 @@ app.use((req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}/`);
+  events.push(`Server running at http://localhost:${PORT}/`);
 });
