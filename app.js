@@ -13,11 +13,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const events = [];
 
-// Use the router for handling routes
-app.use('/', (req, res) => {
-  res.send(events.map((event, index) => `${index + 1}. ${event}`).join('\n'));
-});
-
 app.get('/events', (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -41,6 +36,11 @@ app.get('/events', (req, res) => {
   res.on("close", () => {
     events.push('couldnt contact client')
   })
+});
+
+// Use the router for handling routes
+app.use('/', (req, res) => {
+  res.send(events.map((event, index) => `${index + 1}. ${event}`).join('\n'));
 });
 
 // Catch-all route for handling 404 errors
